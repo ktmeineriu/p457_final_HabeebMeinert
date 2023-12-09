@@ -71,14 +71,14 @@ cicon = consensus_und(Coassignment,thr,num_iter);
 degrees = degrees_und(a);
 %%
 f = figure;
-imagesc(Ci);
+imagesc(Coassignment);
 %%
 %plot the graph
-g = graph(a, 'upper');
+g = digraph(a);
 
 f = figure;
 plot(g);
-plot(g, 'NodeLabel',node_names , 'NodeColor',Ci, 'LineWidth',(g.Edges.Weight)/5, 'MarkerSize',(degrees_und(a) + 1)/5, 'NodeCData',cicon)
+plot(g, 'NodeLabel',node_names , 'NodeColor',Ci, 'LineWidth',(g.Edges.Weight)/5, 'MarkerSize',3, 'NodeCData',cicon, 'Arrowsize', 3)
 
 
 
@@ -89,7 +89,7 @@ plot(g, 'NodeLabel',node_names , 'NodeColor',Ci, 'LineWidth',(g.Edges.Weight)/5,
 CIJ = +(a ~= 0);
 
 % target degree
-k = 100;
+k = 275;
 
 % calculate nodes' degrees
 degrees = degrees_und(CIJ);
@@ -117,28 +117,69 @@ p = mean(phirand >= phi);
 phinorm = mean(phi./phirand);
 
 %%
-%Give the p-value from the rich-club club formula and the fact that we get
-%just a repeat of each number for community analysis. It is quiet possible
-%that there are no rich clubs. However, we can still evaluate high degree
-%nodes.
+
+
+% Find the indices where idx is equal to 1
+indices = find(idx == 1);
+
+% Use the indices to extract the corresponding names from good_names
+selected_names = node_names(indices);
+
+% Display the result
+%disp(selected_names);
+
 
 %%
+% Example data: replace this with your actual data
+%selected_names = {'name1', 'name2', 'name3', ...}; % 1x88 cell array of strings
 
-z = a(idx > 0);
+% Specify the file name
+fileName = 'rich_club_words.txt';
 
-bins =  1:max(a);
+% Open the file for writing
+fileID = fopen(fileName, 'w');
 
-hist(z,bins), xlabel("degree"), ylabel("number of nodes"), title("Rich Club connections");
+% Check if the file was opened successfully
+if fileID == -1
+    error('Error opening file for writing');
+end
+
+% Loop through the strings and write them to the file
+for i = 1:numel(selected_names)
+    fprintf(fileID, '%s\n', selected_names{i});
+end
+
+% Close the file
+fclose(fileID);
+
+disp(['Strings have been written to ' fileName]);
+
+
 
 %%
-% Your existing code to create the graph
-g = graph(a, 'upper');
+% Create a directed graph object
 
-% Specify the index (node numbers) you want to highlight
-highlight_nodes = idx;
+% Create a directed graph object
+g = digraph(a);
 
-% Create a figure and plot the graph, highlighting specific nodes
-f = figure;
-p = plot(g, 'NodeLabel', node_names, 'LineWidth', (g.Edges.Weight)/5, 'MarkerSize', (degrees_und(a))/10);
-highlight(p, highlight_nodes, 'NodeColor', 'r', 'MarkerSize', 10);
+highlight_nodes = indices;
+
+% Plot the directed graph
+figure;
+p = plot(g, 'LineWidth', (g.Edges.Weight)/5, 'MarkerSize', 6, 'Arrowsize',10);
+title('Not so rich-club of EWAN');
+highlight(p, highlight_nodes, 'NodeColor', 'r', 'Marker', 'pentagram', 'MarkerSize', 6);
+
+% Add labels to highlighted nodes
+if ~isempty(highlight_nodes) && max(highlight_nodes) == numel(selected_names)
+    text(p.XData(highlight_nodes), p.YData(highlight_nodes), selected_names(highlight_nodes), 'Color', 'k', 'FontSize', 8, 'FontWeight', 'bold');
+else
+    disp('Error: Highlight nodes are out of bounds or selected_names is not long enough.');
+end
+
+
+%%
+%I have no idea why error occurs for above
+result = (length(highlight_nodes) == length(selected_names));
+
 
